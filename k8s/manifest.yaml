@@ -40,7 +40,8 @@ spec:
         - name: translations-app
           image: harbor.e-dani.com/homelab/shopify-translation-app@sha256:58b61fbf535765078af4d068f5f7aedb2819d09d62a18c4a510e9adb8246077c
           imagePullPolicy: IfNotPresent
-          ports: [{ name: http, containerPort: 3458 }]
+          ports:
+            - { name: http, containerPort: 3458, hostPort: 3458, protocol: TCP }
           env:
             - { name: PORT, value: "3458" }
             - { name: NODE_ENV, value: "production" }
