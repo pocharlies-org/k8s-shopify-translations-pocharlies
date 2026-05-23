@@ -36,6 +36,12 @@ patches:
                   - { name: DEV_MODE, value: "false" }
                   - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/translations" }
                   - { name: BRAIN_URL, value: "http://skirmshop-brain.skirmshop-brain-prod.svc.cluster.local" }
+                  # DB_USER/DB_PASSWORD must precede DATABASE_URL: kustomize orders
+                  # patch env before base env, so $(DB_USER) wouldn't resolve otherwise.
+                  - name: DB_USER
+                    valueFrom: { secretKeyRef: { name: shared-postgres-app, key: username } }
+                  - name: DB_PASSWORD
+                    valueFrom: { secretKeyRef: { name: shared-postgres-app, key: password } }
                   - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-shared-rw.databases.svc.cluster.local:5432/translations" }
                   - name: SYNAPSE_DB_USER
                     valueFrom: { secretKeyRef: { name: translations-secrets, key: SYNAPSE_DB_USER } }
