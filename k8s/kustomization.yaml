@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - git@github.com:pocharlies/k8s-shopify-framework-pocharlies.git//base?ref=deploy/prod
+  - https://github.com/pocharlies/k8s-shopify-framework-pocharlies.git//base?ref=deploy/prod
   - externalsecret.yaml
 
 namePrefix: translations-
@@ -18,8 +18,43 @@ images:
     digest: sha256:58b61fbf535765078af4d068f5f7aedb2819d09d62a18c4a510e9adb8246077c
 
 patches:
-  - path: deployment-patch.yaml
-    target: { kind: Deployment, name: app }
+  - target: { kind: Deployment, name: app }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: app
+      spec:
+        template:
+          spec:
+            imagePullSecrets:
+              - name: harbor-pull
+            containers:
+              - name: app
+                env:
+                  - { name: PORT, value: "3458" }
+                  - { name: DEV_MODE, value: "false" }
+                  - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/translations" }
+                  - { name: BRAIN_URL, value: "http://skirmshop-brain.skirmshop-brain-prod.svc.cluster.local" }
+                  - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-shared-rw.databases.svc.cluster.local:5432/translations" }
+                  - name: SYNAPSE_DB_USER
+                    valueFrom: { secretKeyRef: { name: translations-secrets, key: SYNAPSE_DB_USER } }
+                  - name: SYNAPSE_DB_PASSWORD
+                    valueFrom: { secretKeyRef: { name: translations-secrets, key: SYNAPSE_DB_PASSWORD } }
+                  - { name: SYNAPSE_DATABASE_URL, value: "postgresql://$(SYNAPSE_DB_USER):$(SYNAPSE_DB_PASSWORD)@postgres-shared-rw.databases.svc.cluster.local:5432/synapse" }
+                  - name: _RMQUSER
+                    valueFrom: { secretKeyRef: { name: rabbitmq-secrets, key: RABBITMQ_DEFAULT_USER } }
+                  - name: _RMQPASS
+                    valueFrom: { secretKeyRef: { name: rabbitmq-secrets, key: RABBITMQ_DEFAULT_PASS } }
+                  - { name: SYNAPSE_AMQP_URL, value: "amqp://$(_RMQUSER):$(_RMQPASS)@shared-rabbitmq.databases.svc.cluster.local:5672/%2Fsynapse" }
+                envFrom:
+                  - secretRef: { name: translations-secrets }
+                resources:
+                  limits: { memory: 768Mi }
+                livenessProbe:
+                  tcpSocket: { port: http }
+                  initialDelaySeconds: 60
+                  periodSeconds: 20
   - target: { group: apps, version: v1, kind: Deployment, name: app }
     patch: |-
       - op: replace
