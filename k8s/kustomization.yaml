@@ -25,6 +25,13 @@ patches:
       metadata:
         name: app
       spec:
+        # Single replica pinned to the edge node with a hostPort (3458). With a
+        # RollingUpdate, k8s starts the new pod before terminating the old one,
+        # but both bind hostPort 3458 on the only edge node, so the new pod stays
+        # Pending (FailedScheduling: no free ports) and the rollout deadlocks.
+        # Recreate terminates the old pod first, freeing the port.
+        strategy:
+          type: Recreate
         template:
           spec:
             imagePullSecrets:
