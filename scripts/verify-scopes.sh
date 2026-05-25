@@ -35,23 +35,21 @@ else
   exit 2
 fi
 
-actual="$(render | python3 -c '
-import sys, yaml
-vals = []
-for d in yaml.safe_load_all(sys.stdin):
-    if not d or d.get("kind") != "Deployment":
-        continue
-    for c in d["spec"]["template"]["spec"]["containers"]:
-        if c.get("name") != "app":
-            continue
-        for e in c.get("env", []) or []:
-            if e.get("name") == "SCOPES":
-                vals.append(e.get("value", ""))
-if len(vals) != 1:
-    sys.stderr.write(f"expected exactly one SCOPES env on container app, found {len(vals)}: {vals}\n")
-    sys.exit(3)
-sys.stdout.write(vals[0])
-')"
+# Extract the SCOPES value(s) from the rendered Deployment. kustomize emits the
+# env list in block form ("- name: SCOPES" then a "value:" line), so we grab the
+# line right after each SCOPES key. No YAML library needed — the CI runner has
+# neither pip nor pyyaml, so we stick to coreutils.
+mapfile -t _scopes < <(
+  render \
+    | grep -A1 -E '^[[:space:]]*-?[[:space:]]*name:[[:space:]]+SCOPES[[:space:]]*$' \
+    | grep -E '^[[:space:]]*value:' \
+    | sed -E 's/^[[:space:]]*value:[[:space:]]*//; s/^"//; s/"$//'
+)
+if [ "${#_scopes[@]}" -ne 1 ]; then
+  echo "FAIL: expected exactly one SCOPES env on container 'app', found ${#_scopes[@]}: ${_scopes[*]:-<none>}" >&2
+  exit 3
+fi
+actual="${_scopes[0]}"
 
 norm() { tr ',' '\n' <<<"$1" | sed 's/[[:space:]]//g; /^$/d' | sort | paste -sd, -; }
 exp_n="$(norm "$(cat "$expected_file")")"
