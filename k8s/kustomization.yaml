@@ -33,6 +33,10 @@ patches:
               - name: app
                 env:
                   - { name: PORT, value: "3458" }
+                  # Override the framework base's generic SCOPES (read_products,write_products):
+                  # as a direct env var it shadows the real scopes coming from translations-secrets
+                  # via envFrom. Must match k8s/expected-scopes.txt (guarded by scripts/verify-scopes.sh).
+                  - { name: SCOPES, value: "read_content,read_locales,read_products,read_translations,write_content,write_locales,write_products,write_translations" }
                   - { name: DEV_MODE, value: "false" }
                   - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/translations" }
                   - { name: BRAIN_URL, value: "http://skirmshop-brain.skirmshop-brain-prod.svc.cluster.local" }
