@@ -1,0 +1,1 @@
+read_content,read_locales,read_products,read_translations,write_content,write_locales,write_products,write_translations
