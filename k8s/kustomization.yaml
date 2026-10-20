@@ -15,7 +15,7 @@ labels:
 images:
   - name: shopify-app
     newName: harbor.e-dani.com/homelab/shopify-translation-app
-    digest: sha256:fb98a61df724d7b4dac8c4e98052e3a705e186c53a7d350702688f152e7f8f6a
+    digest: sha256:bc6ec432f189dbd2df4d2a05798d8196458ea2d02863414e1070043b65a5b317
 
 patches:
   - target: { kind: Deployment, name: app }
@@ -42,6 +42,11 @@ patches:
                   # via envFrom. Must match k8s/expected-scopes.txt (guarded by scripts/verify-scopes.sh).
                   - { name: SCOPES, value: "read_content,read_locales,read_products,read_translations,write_content,write_locales,write_products,write_translations" }
                   - { name: DEV_MODE, value: "false" }
+                  # SKIRM-219: dominio permanente de la tienda, el que Shopify manda en
+                  # X-Shopify-Shop-Domain y con el que la app emite su sesión offline
+                  # (client_credentials). El Secret trae el alias skirmshop-spain; como env
+                  # directo tapa al de envFrom, igual que SCOPES.
+                  - { name: SHOPIFY_STORE, value: "ymimst-yh.myshopify.com" }
                   - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/translations" }
                   - { name: BRAIN_URL, value: "http://skirmshop-brain.skirmshop-brain-prod.svc.cluster.local" }
                   - name: BRAIN_API_KEY
