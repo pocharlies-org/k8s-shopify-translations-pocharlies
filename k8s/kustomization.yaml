@@ -30,6 +30,11 @@ patches:
         strategy:
           type: RollingUpdate
         template:
+          metadata:
+            annotations:
+              # Subirlo despliega pods nuevos, que leen las claves añadidas a
+              # translations-secrets (envFrom solo se lee al arrancar el pod).
+              skirmshop.es/secrets-revision: "20261021-translations-api-token"
           spec:
             imagePullSecrets:
               - name: harbor-pull
