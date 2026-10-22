@@ -57,7 +57,9 @@ patches:
                   # SKIRM-219: el brain limita a 2 llamadas al LLM por worker (8 workers en 2 réplicas)
                   # y el residente qwen38-flash-next-tp2 solo tiene 4 slots. Con 3 llamadas de la app
                   # en vuelo se piden 6 a la vez y LiteLLM devuelve 429 (168 en 10 min, 22-10): 1.
-                  - { name: BRAIN_MAX_CONCURRENCY, value: "1" }
+                  # 23-10: con el residente en calma (20 429/30 min, antes 274/h) el tope de 1 es
+                  # lo que limita el ritmo (6 jobs/h, 0.7 lotes/min). Se sube a 2 y se mide.
+                  - { name: BRAIN_MAX_CONCURRENCY, value: "2" }
                   - name: BRAIN_API_KEY
                     valueFrom: { secretKeyRef: { name: rag-secrets, key: BRAIN_API_KEY } }
                   # DB_USER/DB_PASSWORD must precede DATABASE_URL: kustomize orders
