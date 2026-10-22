@@ -54,6 +54,10 @@ patches:
                   - { name: SHOPIFY_STORE, value: "ymimst-yh.myshopify.com" }
                   - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/translations" }
                   - { name: BRAIN_URL, value: "http://skirmshop-brain.skirmshop-brain-prod.svc.cluster.local" }
+                  # SKIRM-219: el brain limita a 2 llamadas al LLM por worker (8 workers en 2 réplicas)
+                  # y el residente qwen38-flash-next-tp2 solo tiene 4 slots. Con 3 llamadas de la app
+                  # en vuelo se piden 6 a la vez y LiteLLM devuelve 429 (168 en 10 min, 22-10): 1.
+                  - { name: BRAIN_MAX_CONCURRENCY, value: "1" }
                   - name: BRAIN_API_KEY
                     valueFrom: { secretKeyRef: { name: rag-secrets, key: BRAIN_API_KEY } }
                   # DB_USER/DB_PASSWORD must precede DATABASE_URL: kustomize orders
