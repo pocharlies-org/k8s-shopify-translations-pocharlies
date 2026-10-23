@@ -15,7 +15,7 @@ labels:
 images:
   - name: shopify-app
     newName: harbor.e-dani.com/homelab/shopify-translation-app
-    digest: sha256:37aecee5320e031af215be828cfdfbd322fa195737385e219cd28cf16220f4be
+    digest: sha256:63dbc43322114f205be496d2ecf427a8428f53b5ff7683e4ba09480487aac4cb
 
 patches:
   - target: { kind: Deployment, name: app }
@@ -64,7 +64,9 @@ patches:
                   # 23-10 16:05: con 2 en vuelo, cada lote de 10 textos lanza ~15 llamadas al
                   # residente y 165 de 180 vuelven 429 (4 slots, compartidos con traefik y
                   # vmagent). Se baja a 1 para ofrecer ~10 llamadas, no 20.
-                  - { name: BRAIN_MAX_CONCURRENCY, value: "1" }
+                  # 23-10 17:00: 1.2.17 manda lotes de 4 textos, así que 2 en vuelo ofrecen ~8
+                  # llamadas; se recupera el paralelismo (con 1 el ritmo era 21 jobs/h).
+                  - { name: BRAIN_MAX_CONCURRENCY, value: "2" }
                   - name: BRAIN_API_KEY
                     valueFrom: { secretKeyRef: { name: rag-secrets, key: BRAIN_API_KEY } }
                   # DB_USER/DB_PASSWORD must precede DATABASE_URL: kustomize orders
