@@ -66,7 +66,11 @@ patches:
                   # vmagent). Se baja a 1 para ofrecer ~10 llamadas, no 20.
                   # 23-10 17:00: 1.2.17 manda lotes de 4 textos, así que 2 en vuelo ofrecen ~8
                   # llamadas; se recupera el paralelismo (con 1 el ritmo era 21 jobs/h).
-                  - { name: BRAIN_MAX_CONCURRENCY, value: "2" }
+                  # 23-10 17:25: con 2 en vuelo siguen 25-46 429/5 min y 1-2 fallos/15 min, y
+                  # el ritmo no sube de ~18 jobs/h: el techo son los 4 slots del residente,
+                  # compartidos. Con 1 en vuelo y lotes de 4 se ofrecen 4 llamadas, que es
+                  # exactamente lo que hay; se prefiere 0 429 y 0 fallos.
+                  - { name: BRAIN_MAX_CONCURRENCY, value: "1" }
                   - name: BRAIN_API_KEY
                     valueFrom: { secretKeyRef: { name: rag-secrets, key: BRAIN_API_KEY } }
                   # DB_USER/DB_PASSWORD must precede DATABASE_URL: kustomize orders
