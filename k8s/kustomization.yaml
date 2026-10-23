@@ -59,7 +59,9 @@ patches:
                   # en vuelo se piden 6 a la vez y LiteLLM devuelve 429 (168 en 10 min, 22-10): 1.
                   # 23-10: con el residente en calma (20 429/30 min, antes 274/h) el tope de 1 es
                   # lo que limita el ritmo (6 jobs/h, 0.7 lotes/min). Se sube a 2 y se mide.
-                  - { name: BRAIN_MAX_CONCURRENCY, value: "2" }
+                  # 23-10 04:30: con 2 el residente queda infrautilizado (9 429/30 min nuestros,
+                  # 27 jobs/h). Se sube a 3; si vuelven timeouts de 300 s o 502, se revierte.
+                  - { name: BRAIN_MAX_CONCURRENCY, value: "3" }
                   - name: BRAIN_API_KEY
                     valueFrom: { secretKeyRef: { name: rag-secrets, key: BRAIN_API_KEY } }
                   # DB_USER/DB_PASSWORD must precede DATABASE_URL: kustomize orders
