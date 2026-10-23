@@ -61,7 +61,10 @@ patches:
                   # lo que limita el ritmo (6 jobs/h, 0.7 lotes/min). Se sube a 2 y se mide.
                   # 23-10 04:30: se subió a 3 y a las 2 h volvieron los timeouts del brain
                   # (3 de 300 s en 60 min) y el ritmo cayó a 30 jobs/h. Se vuelve a 2.
-                  - { name: BRAIN_MAX_CONCURRENCY, value: "2" }
+                  # 23-10 16:05: con 2 en vuelo, cada lote de 10 textos lanza ~15 llamadas al
+                  # residente y 165 de 180 vuelven 429 (4 slots, compartidos con traefik y
+                  # vmagent). Se baja a 1 para ofrecer ~10 llamadas, no 20.
+                  - { name: BRAIN_MAX_CONCURRENCY, value: "1" }
                   - name: BRAIN_API_KEY
                     valueFrom: { secretKeyRef: { name: rag-secrets, key: BRAIN_API_KEY } }
                   # DB_USER/DB_PASSWORD must precede DATABASE_URL: kustomize orders
