@@ -15,7 +15,7 @@ labels:
 images:
   - name: shopify-app
     newName: harbor.e-dani.com/homelab/shopify-translation-app
-    digest: sha256:041be6d6ebcac50b42a6a7bb4d4e307ee83dfaf41a5e4c747d99282af1bd1d4e
+    digest: sha256:dd250c1fd27f8a309d262290d6757ee999d1ac309a6f4aa99d7ff016f3abcde1
 
 patches:
   - target: { kind: Deployment, name: app }
