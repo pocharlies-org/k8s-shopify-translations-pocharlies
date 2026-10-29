@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - https://github.com/pocharlies-org/k8s-shopify-framework-pocharlies.git//base?ref=deploy/prod
   - externalsecret.yaml
+  - externalsecret-rabbitmq.yaml
 
 namePrefix: translations-
 
@@ -88,15 +89,13 @@ patches:
                   # Este overlay sobrescribe DATABASE_URL, así que NO hereda el
                   # default acotado de base/deployment.yaml.
                   - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-shared-rw.databases.svc.cluster.local:5432/translations?connection_limit=5&pool_timeout=15&connect_timeout=10&application_name=translations-app" }
-                  - name: SYNAPSE_DB_USER
-                    valueFrom: { secretKeyRef: { name: translations-secrets, key: SYNAPSE_DB_USER } }
-                  - name: SYNAPSE_DB_PASSWORD
-                    valueFrom: { secretKeyRef: { name: translations-secrets, key: SYNAPSE_DB_PASSWORD } }
-                  - { name: SYNAPSE_DATABASE_URL, value: "postgresql://$(SYNAPSE_DB_USER):$(SYNAPSE_DB_PASSWORD)@postgres-shared-rw.databases.svc.cluster.local:5432/synapse" }
+                  # SC-3028: usuario RabbitMQ propio (synapse_plugin_shopify_translations),
+                  # no el admin del broker. Fuera SYNAPSE_DATABASE_URL y SYNAPSE_DB_*: la app
+                  # no lee la BD synapse (ni hoy ni con el consumidor de SKIRM-220).
                   - name: _RMQUSER
-                    valueFrom: { secretKeyRef: { name: rabbitmq-secrets, key: RABBITMQ_DEFAULT_USER } }
+                    valueFrom: { secretKeyRef: { name: translations-rabbitmq, key: SYNAPSE_AMQP_USER } }
                   - name: _RMQPASS
-                    valueFrom: { secretKeyRef: { name: rabbitmq-secrets, key: RABBITMQ_DEFAULT_PASS } }
+                    valueFrom: { secretKeyRef: { name: translations-rabbitmq, key: SYNAPSE_AMQP_PASSWORD } }
                   - { name: SYNAPSE_AMQP_URL, value: "amqp://$(_RMQUSER):$(_RMQPASS)@shared-rabbitmq.databases.svc.cluster.local:5672/%2Fsynapse" }
                 envFrom:
                   - secretRef: { name: translations-secrets }
