@@ -55,6 +55,14 @@ patches:
                   - { name: SHOPIFY_STORE, value: "ymimst-yh.myshopify.com" }
                   - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/translations" }
                   - { name: BRAIN_URL, value: "http://skirmshop-brain.skirmshop-brain-prod.svc.cluster.local" }
+                  # SC-4304: prepare the local backend; switch only after import and parity verification.
+                  - { name: TRANSLATION_BACKEND, value: "brain" }
+                  - { name: TRANSLATION_CUTOVER_APPROVED, value: "false" }
+                  - { name: TRANSLATION_MODEL, value: "tooling" }
+                  - { name: LITELLM_BASE_URL, value: "https://litellm.e-dani.com/v1" }
+                  # Security approved this shared Skirmshop backend key; no personal or Leila data.
+                  - name: LITELLM_API_KEY
+                    valueFrom: { secretKeyRef: { name: rag-litellm-key, key: LITELLM_KEY } }
                   # SKIRM-219: el brain limita a 2 llamadas al LLM por worker (8 workers en 2 réplicas)
                   # y el residente qwen38-flash-next-tp2 solo tiene 4 slots. Con 3 llamadas de la app
                   # en vuelo se piden 6 a la vez y LiteLLM devuelve 429 (168 en 10 min, 22-10): 1.
