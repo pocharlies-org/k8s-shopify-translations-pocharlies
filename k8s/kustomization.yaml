@@ -55,9 +55,9 @@ patches:
                   - { name: SHOPIFY_STORE, value: "ymimst-yh.myshopify.com" }
                   - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/translations" }
                   - { name: BRAIN_URL, value: "http://skirmshop-brain.skirmshop-brain-prod.svc.cluster.local" }
-                  # SC-4304: prepare the local backend; switch only after import and parity verification.
-                  - { name: TRANSLATION_BACKEND, value: "brain" }
-                  - { name: TRANSLATION_CUTOVER_APPROVED, value: "false" }
+                  # SC-4304 / SC-5272: local backend on (Brain digest == GlossaryImport in the 21 pairs, 10-11). Rollback: brain + false.
+                  - { name: TRANSLATION_BACKEND, value: "postgres" }
+                  - { name: TRANSLATION_CUTOVER_APPROVED, value: "true" }
                   - { name: TRANSLATION_MODEL, value: "tooling" }
                   - { name: LITELLM_BASE_URL, value: "https://litellm.e-dani.com/v1" }
                   # Security approved this shared Skirmshop backend key; no personal or Leila data.
