@@ -79,7 +79,10 @@ patches:
                   # el ritmo no sube de ~18 jobs/h: el techo son los 4 slots del residente,
                   # compartidos. Con 1 en vuelo y lotes de 4 se ofrecen 4 llamadas, que es
                   # exactamente lo que hay; se prefiere 0 429 y 0 fallos.
-                  - { name: BRAIN_MAX_CONCURRENCY, value: "1" }
+                  # 10-11 (SC-5272): con el motor local cada llamada es UN campo (antes el Brain
+                  # mandaba lotes de 4), así que 1 en vuelo dejaba 3 slots del residente sin usar.
+                  # El motor ya entra en paralelo por este semáforo: 3 en vuelo, 1 de holgura.
+                  - { name: BRAIN_MAX_CONCURRENCY, value: "3" }
                   - name: BRAIN_API_KEY
                     valueFrom: { secretKeyRef: { name: rag-secrets, key: BRAIN_API_KEY } }
                   # DB_USER/DB_PASSWORD must precede DATABASE_URL: kustomize orders
