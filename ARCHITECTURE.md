@@ -6,7 +6,7 @@ Manifests de `shopify-translation-app`. Código en `pocharlies-org/shopify-trans
 - Un Deployment web (puerto 3458, `skirmshop.e-dani.com/translations`, ns `skirmshop`). Tronco: `main` (Application `shopify-translations`, path `k8s`).
 
 ## Dependencias (ambos sentidos)
-- Base `pocharlies/k8s-shopify-framework-pocharlies//base?ref=deploy/prod`; imagen `harbor.e-dani.com/homelab/shopify-translation-app`; `externalsecret.yaml`; Postgres compartido; Brain por URL de cluster.
+- Base `pocharlies/k8s-shopify-framework-pocharlies//base?ref=deploy/prod`; imagen `harbor.e-dani.com/homelab/shopify-translation-app`; `externalsecret.yaml`; Postgres compartido; LiteLLM (`litellm.e-dani.com`). El Brain se retiró en SC-5827: el Deployment ya no lleva `BRAIN_URL`, `BRAIN_API_KEY` ni `TRANSLATION_BACKEND`.
 
 ## Stack
 Kustomize con base remota; sin Helm.
