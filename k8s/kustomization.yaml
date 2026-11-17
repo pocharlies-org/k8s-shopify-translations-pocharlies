@@ -54,9 +54,7 @@ patches:
                   # directo tapa al de envFrom, igual que SCOPES.
                   - { name: SHOPIFY_STORE, value: "ymimst-yh.myshopify.com" }
                   - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/translations" }
-                  - { name: BRAIN_URL, value: "http://skirmshop-brain.skirmshop-brain-prod.svc.cluster.local" }
-                  # SC-4304 / SC-5272: local backend on (Brain digest == GlossaryImport in the 21 pairs, 10-11). Rollback: brain + false.
-                  - { name: TRANSLATION_BACKEND, value: "postgres" }
+                  # SC-4304 / SC-5272: único backend (el Brain se retiró en SC-5827).
                   - { name: TRANSLATION_CUTOVER_APPROVED, value: "true" }
                   - { name: TRANSLATION_MODEL, value: "tooling" }
                   - { name: LITELLM_BASE_URL, value: "https://litellm.e-dani.com/v1" }
@@ -82,9 +80,7 @@ patches:
                   # 10-11 (SC-5272): con el motor local cada llamada es UN campo (antes el Brain
                   # mandaba lotes de 4), así que 1 en vuelo dejaba 3 slots del residente sin usar.
                   # El motor ya entra en paralelo por este semáforo: 3 en vuelo, 1 de holgura.
-                  - { name: BRAIN_MAX_CONCURRENCY, value: "3" }
-                  - name: BRAIN_API_KEY
-                    valueFrom: { secretKeyRef: { name: rag-secrets, key: BRAIN_API_KEY } }
+                  - { name: TRANSLATION_MAX_CONCURRENCY, value: "3" }
                   # DB_USER/DB_PASSWORD must precede DATABASE_URL: kustomize orders
                   # patch env before base env, so $(DB_USER) wouldn't resolve otherwise.
                   - name: DB_USER
