@@ -22,9 +22,11 @@ labels:
       app.kubernetes.io/instance: translations-stage
 
 images:
+  # k8s-20261125-skirm652b: lleva THEMES_PUBLISH y el arranque sin `prisma migrate deploy`
+  # (la base nueva se monta sola con prisma/translation-storage.sql).
   - name: shopify-app
     newName: harbor.e-dani.com/homelab/shopify-translation-app
-    digest: sha256:8b55e908f716d5bfaa960990a169cac9c568c232d8a551e0927239c91b511532
+    digest: sha256:737a29d5948651e1756696b694d4bfb2dcb7bce6d516f5a153b653b3c068b154
 
 patches:
   - target: { kind: Deployment, name: app }
