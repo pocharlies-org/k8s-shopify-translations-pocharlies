@@ -46,7 +46,7 @@ patches:
                   # Override the framework base's generic SCOPES (read_products,write_products):
                   # as a direct env var it shadows the real scopes coming from translations-secrets
                   # via envFrom. Must match k8s/expected-scopes.txt (guarded by scripts/verify-scopes.sh).
-                  - { name: SCOPES, value: "read_content,read_locales,read_products,read_translations,write_content,write_locales,write_products,write_translations" }
+                  - { name: SCOPES, value: "read_content,read_locales,read_products,read_themes,read_translations,write_content,write_locales,write_products,write_translations" }
                   - { name: DEV_MODE, value: "false" }
                   # SKIRM-219: dominio permanente de la tienda, el que Shopify manda en
                   # X-Shopify-Shop-Domain y con el que la app emite su sesión offline
