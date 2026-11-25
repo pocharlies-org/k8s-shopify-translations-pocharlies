@@ -22,6 +22,10 @@ Base del framework; `scripts/verify-scopes.sh` + `k8s/expected-scopes.txt`.
 
 ## CI/CD y despliegue
 `ci.yml`, `release.yml`. ArgoCD lee `main`.
+- `k8s-stage/` es el stage (Application `shopify-translations-stage`, ns `skirmshop`): la misma
+  imagen sobre la tienda de prueba `sii-test-sc1800.myshopify.com`, con su Secret
+  (`skirmshop-translations-stage`) y su BD (`translations_stage`). La app es de un solo
+  comerciante, así que el stage es otra instalación de la app, no la misma con otra tienda.
 
 ## Decisiones y trampas
 - El nombre del repo es plural (`translations`), el de la app y la fuente singular (`translation-app`).

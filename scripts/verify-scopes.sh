@@ -17,7 +17,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-overlay="$root/k8s"
+overlay="${1:-$root/k8s}"
 expected_file="$overlay/expected-scopes.txt"
 
 if [ ! -f "$expected_file" ]; then

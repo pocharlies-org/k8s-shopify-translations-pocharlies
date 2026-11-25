@@ -20,7 +20,7 @@ jobs:
       runner: arc-k8s
       run_node: false
       run_docker_build: false
-      kustomize_paths: ". k8s"
+      kustomize_paths: ". k8s k8s-stage"
     secrets: inherit
 
   scopes:
@@ -51,3 +51,8 @@ jobs:
           fi
       - name: Verify SCOPES match expected set
         run: ./scripts/verify-scopes.sh
+
+      # SKIRM-652: el overlay de stage sufre la misma sombra de la base (env directo
+      # sobre envFrom), así que se guarda con el mismo script.
+      - name: Verify SCOPES del overlay de stage
+        run: ./scripts/verify-scopes.sh k8s-stage

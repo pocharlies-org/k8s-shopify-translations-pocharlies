@@ -1,0 +1,86 @@
+# SKIRM-652: stage de la app de traducciones sobre la tienda de prueba
+# `sii-test-sc1800.myshopify.com` (SII Test SC1800). Existe porque la app es de un solo
+# comerciante (`distribution: single_merchant`, sesión offline por client_credentials):
+# instalar la app de producción en el stage movería los webhooks de producción. Es una
+# instalación aparte (app del Dev Dashboard 451959685121) con su Deployment, su Secret y
+# su BD (`translations_stage`, declarada en k8s-infra), y su cola durable propia.
+#
+# Antes de tocar nada de Shopify se comprueba aquí: la regla de casa es que un cambio de
+# tema o de app pasa por el stage y solo después a producción.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - https://github.com/pocharlies-org/k8s-shopify-framework-pocharlies.git//base?ref=deploy/prod
+  - externalsecret.yaml
+
+namePrefix: translations-stage-
+
+labels:
+  - includeSelectors: true
+    pairs:
+      app.kubernetes.io/instance: translations-stage
+
+images:
+  - name: shopify-app
+    newName: harbor.e-dani.com/homelab/shopify-translation-app
+    digest: sha256:8b55e908f716d5bfaa960990a169cac9c568c232d8a551e0927239c91b511532
+
+patches:
+  - target: { kind: Deployment, name: app }
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: app
+      spec:
+        strategy:
+          type: RollingUpdate
+        template:
+          spec:
+            imagePullSecrets:
+              - name: harbor-pull
+            containers:
+              - name: app
+                env:
+                  - { name: PORT, value: "3458" }
+                  # Con read_themes: el webhook THEMES_PUBLISH lo exige (SKIRM-652). Es
+                  # directo porque el de la base (read_products,write_products) tapa al del
+                  # Secret por envFrom; debe cuadrar con k8s-stage/expected-scopes.txt.
+                  - { name: SCOPES, value: "read_content,read_locales,read_products,read_themes,read_translations,write_content,write_locales,write_products,write_translations" }
+                  - { name: DEV_MODE, value: "false" }
+                  # Tienda de stage. Con client_credentials la app emite su sesión offline
+                  # contra este dominio, así que el stage no puede tocar skirmshop-spain.
+                  - { name: SHOPIFY_STORE, value: "sii-test-sc1800.myshopify.com" }
+                  - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/translations-stage" }
+                  - { name: TRANSLATION_CUTOVER_APPROVED, value: "true" }
+                  - { name: TRANSLATION_MODEL, value: "tooling" }
+                  - { name: LITELLM_BASE_URL, value: "https://litellm.e-dani.com/v1" }
+                  - name: LITELLM_API_KEY
+                    valueFrom: { secretKeyRef: { name: rag-litellm-key, key: LITELLM_KEY } }
+                  # DB_USER/DB_PASSWORD antes que DATABASE_URL: kustomize ordena el env del
+                  # patch antes que el de la base y si no, $(DB_USER) no resuelve.
+                  - name: DB_USER
+                    valueFrom: { secretKeyRef: { name: shared-postgres-app, key: username } }
+                  - name: DB_PASSWORD
+                    valueFrom: { secretKeyRef: { name: shared-postgres-app, key: password } }
+                  # connection_limit es obligatorio (postmortem 28-07 en la base del framework).
+                  - { name: DATABASE_URL, value: "postgresql://$(DB_USER):$(DB_PASSWORD)@postgres-shared-rw.databases.svc.cluster.local:5432/translations_stage?connection_limit=5&pool_timeout=15&connect_timeout=10&application_name=translations-stage" }
+                envFrom:
+                  - secretRef: { name: translations-stage-secrets }
+                resources:
+                  limits: { memory: 768Mi }
+                livenessProbe:
+                  tcpSocket: { port: http }
+                  initialDelaySeconds: 60
+                  periodSeconds: 20
+  - target: { group: apps, version: v1, kind: Deployment, name: app }
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/ports/0/containerPort
+        value: 3458
+  - target: { group: traefik.io, version: v1alpha1, kind: IngressRoute, name: app }
+    patch: |-
+      - op: replace
+        path: /spec/routes/0/match
+        value: Host(`skirmshop.e-dani.com`) && PathPrefix(`/translations-stage`)
