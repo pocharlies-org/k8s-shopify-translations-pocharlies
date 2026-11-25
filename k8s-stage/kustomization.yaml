@@ -54,7 +54,10 @@ patches:
                   # Tienda de stage. Con client_credentials la app emite su sesión offline
                   # contra este dominio, así que el stage no puede tocar skirmshop-spain.
                   - { name: SHOPIFY_STORE, value: "sii-test-sc1800.myshopify.com" }
-                  - { name: SHOPIFY_APP_URL, value: "https://skirmshop.e-dani.com/translations-stage" }
+                  # Host propio, no un prefijo nuevo: el producto lleva el prefijo fijado en
+                  # dos sitios (basename de vite y APP_BASE_PATH de app/paths.ts), y por eso el
+                  # stage se sirve en su host con el mismo /translations que producción.
+                  - { name: SHOPIFY_APP_URL, value: "https://translations-stage.e-dani.com/translations" }
                   - { name: TRANSLATION_CUTOVER_APPROVED, value: "true" }
                   - { name: TRANSLATION_MODEL, value: "tooling" }
                   - { name: LITELLM_BASE_URL, value: "https://litellm.e-dani.com/v1" }
@@ -85,4 +88,4 @@ patches:
     patch: |-
       - op: replace
         path: /spec/routes/0/match
-        value: Host(`skirmshop.e-dani.com`) && PathPrefix(`/translations-stage`)
+        value: Host(`translations-stage.e-dani.com`) && PathPrefix(`/translations`)
